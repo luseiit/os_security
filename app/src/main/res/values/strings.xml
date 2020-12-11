@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">os_security</string>
+    <string name="image_is_not_loaded">image is not loaded</string>
+</resources>
