@@ -10,8 +10,34 @@ import android.os.Bundle;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import android.annotation.SuppressLint;
+import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
+
+    /********************/
+
+    public static String get(String key){
+        String ret = "";
+        try{
+            Class<?> SystemProperties = Class.forName("android.os.SystemProperties");
+
+            @SuppressWarnings("rawtypes")
+            Class[] paramTypes = { String.class };
+            Method get = SystemProperties.getMethod("get",paramTypes);
+            Object[] params = { key };
+            ret = (String)get.invoke(SystemProperties,params);
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    /********************/
+
 
     private boolean isRooted(){ // 1) su 명령어 사용이 가능한지 아닌지로 rooting 판별
         boolean flag = false;
@@ -52,12 +78,29 @@ public class MainActivity extends AppCompatActivity {
                 &&
                 new File("/data/data/com.thirdparty.superuser").exists());
     }
-    private boolean checkDirectoryAccessControl(){
+    private boolean checkDirectoryAccessControl(){ // 4) 루팅으로 디렉토리의 접근권한이 바뀌는지 check.
         return !(new File("/data").canWrite()
                 &&
                 new File("/").canWrite()
                 &&
                 new File("/system").canWrite());
+    }
+    boolean isProbablyAnEmulator(){ // checking Emulator
+        return (Build.FINGERPRINT.startsWith("google/sdk_gphone_")
+                && Build.FINGERPRINT.endsWith(":user/release-keys")
+                && Build.MANUFACTURER == "Google" && Build.PRODUCT.startsWith("sdk_gphone_") && Build.BRAND == "google"
+                && Build.MODEL.startsWith("sdk_gphone_")) // Android SDK emulator
+                || Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || "QC_Reference_Phone" == Build.BOARD  //bluestacks
+                || Build.MANUFACTURER.contains("Genymotion")
+                || Build.HOST.startsWith("Build") //MSI App Player
+                || Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")
+                || Build.PRODUCT == "google_sdk"
+                || get("ro.kernel.qemu").equals("1");// another Android SDK emulator check
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
