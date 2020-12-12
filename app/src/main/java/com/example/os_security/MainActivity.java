@@ -16,7 +16,7 @@ import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
-    /********************/
+    /******************** android.os.SystemProperties는 항상 reflection 방식으로만 접근이 가능하다. */
 
     public static String get(String key){
         String ret = "";
@@ -111,6 +111,22 @@ public class MainActivity extends AppCompatActivity {
         // rooting detection (1)(2)(3)(4) : using su command, checking build tags, checking rooting files, checking access control
 
         if(isRooted() && checkBuildTag() && findSuperuserFile() && checkDirectoryAccessControl()){
+            if(isProbablyAnEmulator()){ // emulator detection
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setMessage("This device is emulator. can't run this app");
+                alertDialogBuilder.setCancelable(false);
+                alertDialogBuilder.setPositiveButton("Ok, Sorry", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        moveTaskToBack(true);
+                        finish();
+                        android.os.Process.killProcess(android.os.Process.myPid());
+                    }
+                });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+                return;
+            }
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setMessage("This device is rooted device. can't run this app");
             alertDialogBuilder.setCancelable(false);
