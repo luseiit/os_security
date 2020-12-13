@@ -2,6 +2,7 @@ package com.example.os_security;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import android.provider.Settings;
 
 import android.content.DialogInterface;
 import android.os.Build;
@@ -90,6 +91,10 @@ public class MainActivity extends AppCompatActivity {
                 && Build.FINGERPRINT.endsWith(":user/release-keys")
                 && Build.MANUFACTURER == "Google" && Build.PRODUCT.startsWith("sdk_gphone_") && Build.BRAND == "google"
                 && Build.MODEL.startsWith("sdk_gphone_")) // Android SDK emulator
+                && get("service.camera.running").equals("")
+                && get("ro.bluetooth.tty").equals("")
+                && get("ro.chipname").equals("")
+                && get("ro.gps.chip.vendor").equals("")
                 || Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
                 || Build.MODEL.contains("google_sdk")
@@ -108,9 +113,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         /************************************************/
-        // rooting detection (1)(2)(3)(4) : using su command, checking build tags, checking rooting files, checking access control
+        // emulator detection (1)(2)(3)(4) : using device sensor, using build property
 
         if(isProbablyAnEmulator()){ // emulator detection
+            if(isRooted() && checkBuildTag() && findSuperuserFile() && checkDirectoryAccessControl()){
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setMessage("This device is emulator and rooted. can't run this app");
+                alertDialogBuilder.setCancelable(false);
+                alertDialogBuilder.setPositiveButton("Ok, Sorry", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        moveTaskToBack(true);
+                        finish();
+                        android.os.Process.killProcess(android.os.Process.myPid());
+                    }
+                });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+                return;
+            }
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setMessage("This device is emulator. can't run this app");
             alertDialogBuilder.setCancelable(false);
@@ -127,8 +148,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        /************************************************/
+        // rooting detection (1)(2)(3)(4) : using su command, checking build tags, checking rooting files, checking access control
+        // not emulator, but rooted device.
         if(isRooted() && checkBuildTag() && findSuperuserFile() && checkDirectoryAccessControl()){
-
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setMessage("This device is rooted device. can't run this app");
             alertDialogBuilder.setCancelable(false);
