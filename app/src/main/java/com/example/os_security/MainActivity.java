@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         // emulator detection (1)(2)(3)(4) : using device sensor, using build property
 
         if(isProbablyAnEmulator()){ // emulator detection
-            if(isRooted() && checkBuildTag() && findSuperuserFile() && checkDirectoryAccessControl()){
+            if(isRooted() && checkBuildTag() && findSuperuserFile() && checkDirectoryAccessControl()){ //rooting detection
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
                 alertDialogBuilder.setMessage("This device is emulator and rooted. can't run this app");
                 alertDialogBuilder.setCancelable(false);
